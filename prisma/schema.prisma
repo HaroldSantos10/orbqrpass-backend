@@ -6,9 +6,120 @@
 
 generator client {
   provider = "prisma-client"
-  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
+  //url      = env("DATABASE_URL")
+  //directUrl = env("DIRECT_URL")
+}
+
+// =====================
+// ENUMS
+// =====================
+
+enum UserRole {
+  ORGANIZER
+  STAFF
+  ATTENDEE
+}
+
+enum TicketType {
+  ONLINE
+  PHYSICAL
+  HYBRID
+}
+
+enum CheckinStatus {
+  PENDING
+  CHECKED_IN
+}
+
+enum InfoStatus {
+  UNREGISTERED
+  REGISTERED
+}
+
+// =====================
+// MODELS
+// =====================
+
+model User {
+  id          String    @id @default(uuid())
+  email       String    @unique
+  firstName   String
+  lastName    String
+  password    String?
+  googleId    String?
+  role        UserRole
+  companyName String?
+  createdAt   DateTime  @default(now())
+
+  // Relaciones
+  organizedEvents Event[]          @relation("OrganizerEvents")
+  staffAssignments EventStaff[]
+}
+
+model Event {
+  id           String     @id @default(uuid())
+  eventName    String
+  description  String?
+  location     String
+  eventImage   String?
+  startDate    DateTime
+  endDate      DateTime
+  capacity     Int
+  ticketType   TicketType
+  personalInfo Boolean    @default(false)
+  organizerId  String
+  createdAt    DateTime   @default(now())
+
+  // Relaciones
+  organizer    User         @relation("OrganizerEvents", fields: [organizerId], references: [id])
+  staff        EventStaff[]
+  tickets      Ticket[]
+}
+
+model EventStaff {
+  id        String   @id @default(uuid())
+  userId    String
+  eventId   String
+  createdAt DateTime @default(now())
+
+  // Relaciones
+  user      User     @relation(fields: [userId], references: [id])
+  event     Event    @relation(fields: [eventId], references: [id])
+
+  // Evita que el mismo staff esté dos veces en el mismo evento
+  @@unique([userId, eventId])
+}
+
+model Ticket {
+  id             String        @id @default(uuid())
+  qrCode         String        @unique @default(uuid())
+  buyerName      String?
+  buyerEmail     String
+  checkinStatus  CheckinStatus @default(PENDING)
+  infoStatus     InfoStatus    @default(UNREGISTERED)
+  eventId        String
+  personalInfoId String?       @unique
+  createdAt      DateTime      @default(now())
+  checkedInAt    DateTime?
+
+  // Relaciones
+  event          Event         @relation(fields: [eventId], references: [id])
+  personalInfo   PersonalInfo? @relation(fields: [personalInfoId], references: [id])
+}
+
+model PersonalInfo {
+  id               String   @id @default(uuid())
+  firstName        String
+  lastName         String
+  bloodType        String?
+  allergies        String?
+  emergencyContact String?
+  createdAt        DateTime @default(now())
+
+  // Relación inversa
+  ticket           Ticket?
 }

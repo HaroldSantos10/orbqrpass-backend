@@ -6,9 +6,10 @@ import { UsersModule } from './users/users.module';
 import { EventsModule } from './events/events.module';
 import { TicketsModule } from './tickets/tickets.module';
 import { StaffModule } from './staff/staff.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 @Module({
-  imports: [AuthModule, UsersModule, EventsModule, TicketsModule, StaffModule],
+  imports: [AuthModule, UsersModule, EventsModule, TicketsModule, StaffModule, AnalyticsModule],
   controllers: [AppController],
   providers: [AppService],
 })
