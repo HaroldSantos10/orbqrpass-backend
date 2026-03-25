@@ -9,13 +9,14 @@ import { StaffModule } from './staff/staff.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
+import { MailModule } from './mail/mail.module';
 
 
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    AuthModule, UsersModule, EventsModule, TicketsModule, StaffModule, AnalyticsModule, PrismaModule],
+    AuthModule, UsersModule, EventsModule, TicketsModule, StaffModule, AnalyticsModule, PrismaModule, MailModule],
   controllers: [AppController],
   providers: [AppService],
 })
