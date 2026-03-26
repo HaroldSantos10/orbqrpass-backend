@@ -14,6 +14,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { RegisterPersonalInfoDto } from './dto/register-personal-info.dto';
 
 
 @Controller('tickets')
@@ -48,6 +49,22 @@ export class TicketsController {
         return this.ticketsService.findByEvent(eventId, user.id);
     }
 
+    // public — attendee register the personal info required by the event
+    @Post('personal-info')
+    registerPersonalInfo(@Body() dto: RegisterPersonalInfoDto) {
+    return this.ticketsService.registerPersonalInfo(dto);
+    }
+
+    // organizer see the personal info of the attendees of his event
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('ORGANIZER')
+    @Get('personal-info/:eventId')
+    getPersonalInfo(
+    @Param('eventId') eventId: string,
+    @CurrentUser() user: any,
+    ) {
+    return this.ticketsService.getPersonalInfoByEvent(eventId, user.id);
+    }
 
 }
 

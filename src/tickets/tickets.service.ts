@@ -12,6 +12,7 @@ import { BuyTicketDto } from './dto/buy-ticket.dto';
 import { validate } from 'class-validator';
 import { use } from 'passport';
 import { eventNames } from 'process';
+import { RegisterPersonalInfoDto } from './dto/register-personal-info.dto';
 
 @Injectable()
 export class TicketsService {
@@ -195,7 +196,86 @@ export class TicketsService {
     }
 
 
+    // ─── REGISTER ATTENDEE PERSONAL INFO ─────────────────
+    async registerPersonalInfo(dto: RegisterPersonalInfoDto) {
+    const ticket = await this.prisma.ticket.findUnique({
+        where: { id: dto.ticketId },
+        include: { event: true },
+    });
 
+    if (!ticket) throw new NotFoundException('Ticket no encontrado');
+
+    // verify than the event had personal info enabled
+    if (!ticket.event.personalInfo) {
+        throw new BadRequestException(
+        'Este evento no solicita información personal',
+        );
+    }
+
+    // if personal info already exists for this ticket, update it
+    if (ticket.personalInfoId) {
+        const updated = await this.prisma.personalInfo.update({
+        where: { id: ticket.personalInfoId },
+        data: {
+            firstName: dto.firstName,
+            lastName: dto.lastName,
+            bloodType: dto.bloodType,
+            allergies: dto.allergies,
+            emergencyContact: dto.emergencyContact,
+        },
+        });
+        return updated;
+    }
+
+    // create new personal info and link it to the ticket
+    const personalInfo = await this.prisma.personalInfo.create({
+        data: {
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+        bloodType: dto.bloodType,
+        allergies: dto.allergies,
+        emergencyContact: dto.emergencyContact,
+        },
+    });
+
+    // update the ticket with the personal info id
+    // and change the infoStatus to "REGISTERED"
+    await this.prisma.ticket.update({
+        where: { id: dto.ticketId },
+        data: {
+        personalInfoId: personalInfo.id,
+        infoStatus: 'REGISTERED',
+        },
+    });
+
+    return { message: 'Información registrada correctamente', personalInfo };
+    }
+
+    // ─── See Personal Info by Event (used by event organizers) ────
+    async getPersonalInfoByEvent(eventId: string, organizerId: string) {
+    const event = await this.prisma.event.findUnique({
+        where: { id: eventId },
+    });
+
+    if (!event) throw new NotFoundException('Evento no encontrado');
+    if (event.organizerId !== organizerId) {
+        throw new ForbiddenException('No tenés acceso a este evento');
+    }
+
+    return this.prisma.ticket.findMany({
+        where: {
+        eventId,
+        infoStatus: 'REGISTERED',
+        },
+        select: {
+        id: true,
+        buyerName: true,
+        buyerEmail: true,
+        checkinStatus: true,
+        personalInfo: true,
+        },
+    });
+    }
 
 }
 
