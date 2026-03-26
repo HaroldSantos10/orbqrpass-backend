@@ -13,12 +13,16 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('Staff')
 @Controller('staff')
 export class StaffController {
     constructor(private staffService: StaffService) {}
 
     //ORGANIZER IVITES STAFF
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Invite a staff user to an event (only for organizers)' })
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('ORGANIZER')
     @Post('invite')
@@ -27,6 +31,8 @@ export class StaffController {
     }
 
     // organizer see the staff of the event
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Find staff members for a specific event (only for organizers)' })
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('ORGANIZER')
     @Get('event/:eventId')
@@ -36,6 +42,8 @@ export class StaffController {
 
 
     // organizer removes staff from the event
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Remove a staff user from an event (only for organizers)' })
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('ORGANIZER')
     @Delete(':id')
@@ -44,6 +52,8 @@ export class StaffController {
     }
 
     // staff sees the events they are staff of
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Find events for which a staff user is assigned' })
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('STAFF')
     @Get('my-events')

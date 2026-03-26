@@ -18,18 +18,23 @@ import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { userInfo } from 'os';
 import { use } from 'passport';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('Events')
 @Controller('events')
 export class EventsController {
     constructor(private eventsService: EventsService) {}
 
     //Public route - anyone can search for events
+    @ApiOperation({ summary: 'Search for public events' })
     @Get('public')
     findPublic(@Query('search') search?: string) {
         return this.eventsService.findPublic(search);
     }
 
     //Protected route - only organizers
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Create a new event' })
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('ORGANIZER')
     @Post()
@@ -37,6 +42,8 @@ export class EventsController {
         return this.eventsService.create(dto, user.id);
     }
 
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Find all events for an organizer' })
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('ORGANIZER')
     @Get()
@@ -44,6 +51,8 @@ export class EventsController {
         return this.eventsService.findAllByOrganizer(user.id);
     }
 
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Find a specific event' })
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('ORGANIZER')
     @Get(':id')
@@ -51,6 +60,8 @@ export class EventsController {
         return this.eventsService.findOne(id, user.id);
     }
 
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Update a specific event' })
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('ORGANIZER')
     @Patch(':id')
@@ -62,6 +73,8 @@ export class EventsController {
         return this.eventsService.update(id, dto, user.id);
     }
     
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Delete a specific event' })
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('ORGANIZER')
     @Delete(':id')
