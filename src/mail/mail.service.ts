@@ -32,12 +32,20 @@ export class MailService {
         eventLocation: string,
         qrCodes: string[]
     ) {
+        // create attachments - every QR code as a png image
+        const attachments = qrCodes.map((qr, index) => ({
+            filename: `ticket-${index + 1}.png`,
+            content: qr,
+            
+        }));
+
+
         const ticketsHtml = qrCodes
         .map(
-            (qr, index) => `
+            (_, index) => `
             <div style="margin: 20px 0; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
-            <h3>Ticket #${index + 1}</h3>
-            <img src="${qr}" alt="QR Ticket ${index + 1}" style="width: 200px; height: 200px;" />
+            <h3 style="margin: 0 0 10px 0;">Ticket #${index + 1}</h3>
+            <img src="cid:ticket-${index + 1}.png" alt="QR Ticket ${index + 1}" width="200" height="200" />
             <p>Mostrá este QR en la entrada del evento.</p>
             </div>
         `,
@@ -48,7 +56,9 @@ export class MailService {
         from: 'OrbQRpass <onboarding@resend.dev>',
         to: process.env.MAIL_TEST_TO as string,
         subject: `Tus tickets para ${eventName}`,
+        attachments,
         html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2>¡Hola ${buyerName}!</h2>
             <p>Tus tickets para <strong>${eventName}</strong> están listos.</p>
             <p><strong>Fecha:</strong> ${eventDate}</p>
@@ -56,6 +66,7 @@ export class MailService {
             <hr />
             ${ticketsHtml}
             <p>Guardá este email y mostrá cada QR al ingresar.</p>
+            </div>
         `,
         });
     }

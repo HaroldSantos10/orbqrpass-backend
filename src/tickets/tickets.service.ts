@@ -55,12 +55,13 @@ export class TicketsService {
 
         //generate QR codes for each ticket
         const qrImages = await Promise.all(
-            tickets.map((ticket) =>
-                QRCode.toDataURL(ticket.qrCode, {
-                    width: 300,
-                    margin: 2,
-                }),
-            ),
+            tickets.map(async (ticket) => {
+                const buffer = await QRCode.toBuffer(ticket.qrCode, {
+                width: 300,
+                margin: 2,
+                });
+                return buffer.toString('base64');
+            }),
         );
 
 
