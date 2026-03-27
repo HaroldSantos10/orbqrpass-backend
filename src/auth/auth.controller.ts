@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, UseGuards, Req } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Req, Res } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
@@ -32,8 +32,11 @@ export class AuthController {
   @ApiOperation({ summary: 'Google authentication callback' })
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  googleCallback(@Req() req) {
-    return this.authService.googleLogin(req.user);
+  async googleCallback(@Req() req, @Res() res) {
+    const result = await this.authService.googleLogin(req.user);
+    return res.redirect(
+      `${process.env.FRONTEND_URL}/auth/callback?token=${result.access_token}&role=${result.role}`
+    );
   }
 
   @ApiOperation({ summary: 'Activate a staff user (only for organizers)' })
@@ -41,4 +44,8 @@ export class AuthController {
   activateStaff(@Body() body: { email: string; password: string }) {
     return this.authService.activateStaff(body.email, body.password);
   }
+
+  
+
+
 }
